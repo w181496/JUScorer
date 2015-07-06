@@ -13,7 +13,7 @@ class JUScorer
     @ext_num = 0
     @adv_num = 0
     @bas_num = 0
-    @rival = '60930007178425'
+    @rival = '60930007178425' # your own rival id
     login
     findUser
     start
@@ -36,15 +36,18 @@ class JUScorer
       @user = User.find_by(rival_id: @rival)
     else
       @page = @agent.get "http://p.eagate.573.jp/game/jubeat/prop/p/playdata/index_other.html?rival_id=#{ @rival }"
+
       #match title and nickname
       spans = @page.search("div#pname/span")
       @title = spans[0].text.strip
       @nick = spans[1].text.strip
+
       #match play detail
       play_detail = @page.search("td.right")
       @tune_num = play_detail[0].text.strip.to_i
       @fc_num = play_detail[1].text.strip.to_i
       @exc_num = play_detail[2].text.strip.to_i
+
       #match last_time, location and center
       bottom = @page.search("tr.bottom/td/div")
       temp = bottom.xpath('br/preceding-sibling::text()').text.strip
@@ -55,6 +58,7 @@ class JUScorer
       @location = Regexp.last_match[1].strip
       @game_center = Regexp.last_match[2].strip
 
+      #create a user to db
       @user  = User.create!(rival_id: @rival, nick: @nick, title: @title, last_at: @last_at, location: @location, \
                             game_center: @game_center, tune_num: @tune_num, fc_num: @fc_num, exc_num: @exc_num)
     end

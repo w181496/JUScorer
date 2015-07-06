@@ -29,7 +29,7 @@ begin
     end
   end
 rescue Exception => e
-  puts "#{ e.class }, 資料表已創建"
+  puts "#{ e.class }, 資料表已存在"
 end
 
 class User < ActiveRecord::Base
