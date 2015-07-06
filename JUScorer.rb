@@ -3,6 +3,7 @@ require 'rubygems'
 require 'mechanize'
 require 'sqlite3'
 require './config/config.rb'
+require './db/db.rb'
 
 class JUScorer
   def initialize
@@ -12,8 +13,9 @@ class JUScorer
     @ext_num = 0
     @adv_num = 0
     @bas_num = 0
-    @rival = 60930007178425
+    @rival = '60930007178425'
     login
+    findUser
     start
   end
 
@@ -29,6 +31,35 @@ class JUScorer
     @page = @agent.submit(form)
   end
 
+  def findUser
+    if User.find_by(rival_id: @rival)
+      @user = User.find_by(rival_id: @rival)
+    else
+      @page = @agent.get "http://p.eagate.573.jp/game/jubeat/prop/p/playdata/index_other.html?rival_id=#{ @rival }"
+      #match title and nickname
+      spans = @page.search("div#pname/span")
+      @title = spans[0].text.strip
+      @nick = spans[1].text.strip
+      #match play detail
+      play_detail = @page.search("td.right")
+      @tune_num = play_detail[0].text.strip.to_i
+      @fc_num = play_detail[1].text.strip.to_i
+      @exc_num = play_detail[2].text.strip.to_i
+      #match last_time, location and center
+      bottom = @page.search("tr.bottom/td/div")
+      temp = bottom.xpath('br/preceding-sibling::text()').text.strip
+      /最終プレー日時：(.*)/ =~ temp
+      @last_at = Regexp.last_match[1].strip
+      temp = bottom.xpath('br/following-sibling::text()').text.strip
+      /(.*) (.*)/ =~ temp
+      @location = Regexp.last_match[1].strip
+      @game_center = Regexp.last_match[2].strip
+
+      @user  = User.create!(rival_id: @rival, nick: @nick, title: @title, last_at: @last_at, location: @location, \
+                            game_center: @game_center, tune_num: @tune_num, fc_num: @fc_num, exc_num: @exc_num)
+    end
+  end
+
   #start to parse the score
   def crawl
     cnt = 0
@@ -37,6 +68,7 @@ class JUScorer
       cnt = cnt + 1
       data = row.search("td")
       if cnt > 2
+        song_name = data.search('a').text.strip
         ext = row.search('td[5]').text.strip
         adv = row.search('td[4]').text.strip
         bas = row.search('td[3]').text.strip
@@ -56,10 +88,20 @@ class JUScorer
           @bas_num = @bas_num + 1
         end
 
-        p "#{data.search('a').text.strip} " \
-        "紅譜：#{ext} " \
-        "黃譜：#{adv} " \
-        "綠譜：#{bas}"
+        #update song's scores
+        if song = @user.songs.find_by(name: song_name)
+          song.bas_score = bas
+          song.adv_score = adv
+          song.ext_score = ext
+          song.save
+        else
+          @user.songs.create!(name: song_name, bas_score: bas, adv_score: adv, ext_score: ext)
+        end
+
+        p "#{ song_name } " \
+        "紅譜：#{ ext } " \
+        "黃譜：#{ adv } " \
+        "綠譜：#{ bas }"
       end
     end
   end
@@ -75,9 +117,10 @@ class JUScorer
 
   #print basic, advance, extreme score
   def printscore
-    p "綠譜平均：#{ @bas_total * 1.0 / @bas_num}"
-    p "黃譜平均：#{ @adv_total * 1.0 / @adv_num}"
-    p "紅譜平均：#{ @ext_total * 1.0 / @ext_num}"
+    p "綠譜平均：#{ @bas_total * 1.0 / @bas_num }"
+    p "黃譜平均：#{ @adv_total * 1.0 / @adv_num }"
+    p "紅譜平均：#{ @ext_total * 1.0 / @ext_num }"
     p "全譜面平均：#{ (@bas_total + @adv_total + @ext_total) * 1.0 / (@bas_num + @adv_num + @ext_num) }"
   end
 end
+
