@@ -18,3 +18,4 @@ and then, open the `JUScorer.rb`, modify the value of '@rival' to your own rival
 
 Now, you can run `$ ruby main.rb` to get your songs' scores!
 
+![img]https://github.com/w181496/JUScorer/image.png
