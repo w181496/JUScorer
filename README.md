@@ -4,11 +4,13 @@
 It is a crawler for the music game `Jubeat prop`
 
 ## How to use
-Install Ruby, RubyGems, sqlite3, nokogiri, mechanize.
+Install Ruby, RubyGems, sqlite3, nokogiri, mechanize, colorize.
 
 `$ gem install nokogiri`
 
 `$ gem install mechanize`
+
+`$ gem install colorize`
 
 copy the `config/config.sample.rb` to `config/config.rb`
 

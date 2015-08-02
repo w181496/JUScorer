@@ -2,17 +2,14 @@
 require 'rubygems'
 require 'mechanize'
 require 'sqlite3'
+require 'colorize'
 require './config/config.rb'
 require './db/db.rb'
 
 class JUScorer
   def initialize
-    @ext_total = 0
-    @adv_total = 0
-    @bas_total = 0
-    @ext_num = 0
-    @adv_num = 0
-    @bas_num = 0
+    @ext_total = @adv_total = @bas_total = 0
+    @ext_num = @adv_num = @bas_num = 0
     @rival = '60930007178425' # your own rival id
     login
     findUser
@@ -102,10 +99,7 @@ class JUScorer
           @user.songs.create!(name: song_name, bas_score: bas, adv_score: adv, ext_score: ext)
         end
 
-        p "#{ song_name } " \
-        "紅譜：#{ ext } " \
-        "黃譜：#{ adv } " \
-        "綠譜：#{ bas }"
+        puts "#{ song_name } ".colorize(:cyan) + "紅譜：#{ ext } ".colorize(:red) + "黃譜：#{ adv } ".colorize(:yellow) + "綠譜：#{ bas }".colorize(:green)
       end
     end
   end
@@ -121,10 +115,10 @@ class JUScorer
 
   #print basic, advance, extreme score
   def printscore
-    p "綠譜平均：#{ @bas_total * 1.0 / @bas_num }"
-    p "黃譜平均：#{ @adv_total * 1.0 / @adv_num }"
-    p "紅譜平均：#{ @ext_total * 1.0 / @ext_num }"
-    p "全譜面平均：#{ (@bas_total + @adv_total + @ext_total) * 1.0 / (@bas_num + @adv_num + @ext_num) }"
+    puts "綠譜平均：#{ @bas_total * 1.0 / @bas_num }".colorize(:green)
+    puts "黃譜平均：#{ @adv_total * 1.0 / @adv_num }".colorize(:yellow)
+    puts "紅譜平均：#{ @ext_total * 1.0 / @ext_num }".colorize(:red)
+    puts "全譜面平均：#{ (@bas_total + @adv_total + @ext_total) * 1.0 / (@bas_num + @adv_num + @ext_num) }".colorize(:light_white)
   end
 end
 
