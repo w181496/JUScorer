@@ -7,10 +7,10 @@ require './config/config.rb'
 require './db/db.rb'
 
 class JUScorer
-  def initialize
+  def initialize(riv = '60930007178425')
     @ext_total = @adv_total = @bas_total = 0
     @ext_num = @adv_num = @bas_num = 0
-    @rival = '60930007178425' # your own rival id
+    @rival = riv # your own rival id
     login
     findUser
     start
@@ -29,9 +29,9 @@ class JUScorer
   end
 
   def findUser
-    if User.find_by(rival_id: @rival)
-      @user = User.find_by(rival_id: @rival)
-    else
+      #===========================================
+      #TODO: Check the user whether exists
+      #===========================================
       @page = @agent.get "http://p.eagate.573.jp/game/jubeat/prop/p/playdata/index_other.html?rival_id=#{ @rival }"
 
       #match title and nickname
@@ -55,9 +55,14 @@ class JUScorer
       @location = Regexp.last_match[1].strip
       @game_center = Regexp.last_match[2].strip
 
-      #create a user to db
-      @user  = User.create!(rival_id: @rival, nick: @nick, title: @title, last_at: @last_at, location: @location, \
-                            game_center: @game_center, tune_num: @tune_num, fc_num: @fc_num, exc_num: @exc_num)
+      if User.find_by(rival_id: @rival)
+        @user = User.find_by(rival_id: @rival)
+        @user.update(nick: @nick, title: @title, last_at: @last_at, location: @location, game_center: @game_center, \
+                     tune_num: @tune_num, fc_num: @fc_num, exc_num: @exc_num)
+      else
+        #create a user into db
+        @user  = User.create!(rival_id: @rival, nick: @nick, title: @title, last_at: @last_at, location: @location, \
+                              game_center: @game_center, tune_num: @tune_num, fc_num: @fc_num, exc_num: @exc_num)
     end
   end
 
@@ -115,9 +120,9 @@ class JUScorer
 
   #print basic, advance, extreme score
   def printscore
-    puts "綠譜平均：#{ @bas_total * 1.0 / @bas_num }".colorize(:green)
-    puts "黃譜平均：#{ @adv_total * 1.0 / @adv_num }".colorize(:yellow)
-    puts "紅譜平均：#{ @ext_total * 1.0 / @ext_num }".colorize(:red)
+    puts "綠譜平均：#{ @bas_total * 1.0 / @bas_num }".colorize(:light_green)
+    puts "黃譜平均：#{ @adv_total * 1.0 / @adv_num }".colorize(:light_yellow)
+    puts "紅譜平均：#{ @ext_total * 1.0 / @ext_num }".colorize(:light_red)
     puts "全譜面平均：#{ (@bas_total + @adv_total + @ext_total) * 1.0 / (@bas_num + @adv_num + @ext_num) }".colorize(:light_white)
   end
 end
