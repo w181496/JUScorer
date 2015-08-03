@@ -1,3 +1,3 @@
-require './JUScorer.rb'
+require './Cli.rb'
 
-JUScorer.new.printscore
+Cli.new
