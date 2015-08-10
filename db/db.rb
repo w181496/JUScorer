@@ -23,9 +23,13 @@ begin
     create_table :songs do |t|
       t.belongs_to :user, index: true
       t.string :name
+      t.string :mid
       t.integer :bas_score
       t.integer :adv_score
       t.integer :ext_score
+      t.integer :bas_lv
+      t.integer :adv_lv
+      t.integer :ext_lv
     end
   end
 rescue Exception => e

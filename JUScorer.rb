@@ -55,8 +55,8 @@ class JUScorer
       @location = Regexp.last_match[1].strip
       @game_center = Regexp.last_match[2].strip
 
-      if User.find_by(rival_id: @rival)
-        @user = User.find_by(rival_id: @rival)
+      @user = User.find_by(rival_id: @rival)
+      if @user
         @user.update(nick: @nick, title: @title, last_at: @last_at, location: @location, game_center: @game_center, \
                      tune_num: @tune_num, fc_num: @fc_num, exc_num: @exc_num)
       else
@@ -74,6 +74,9 @@ class JUScorer
       cnt = cnt + 1
       data = row.search("td")
       if cnt > 2
+        song_url = "http://p.eagate.573.jp" + data.search('a/@href').text.strip
+        /mid=(.*)/ =~ song_url
+        mid = Regexp.last_match[1].strip
         song_name = data.search('a').text.strip
         ext = row.search('td[5]').text.strip
         adv = row.search('td[4]').text.strip
@@ -95,13 +98,27 @@ class JUScorer
         end
 
         #update song's scores
-        if song = @user.songs.find_by(name: song_name)
+        #天国と地獄 there are two the same song name, fuck!
+        if song = @user.songs.find_by(name: mid)
           song.bas_score = bas
           song.adv_score = adv
           song.ext_score = ext
           song.save
         else
-          @user.songs.create!(name: song_name, bas_score: bas, adv_score: adv, ext_score: ext)
+          # get song's level
+          @test = @agent.get song_url
+          seqs = @test.search("div.seq")
+          tmp = seqs[0].search("tr.head").text.strip
+          /LEVEL : (.*)/ =~ tmp
+          bas_lv = Regexp.last_match[1].strip
+          tmp = seqs[1].search("tr.head").text.strip
+          /LEVEL : (.*)/ =~ tmp
+          adv_lv = Regexp.last_match[1].strip
+          tmp = seqs[2].search("tr.head").text.strip
+          /LEVEL : (.*)/ =~ tmp
+          ext_lv = Regexp.last_match[1].strip
+
+          @user.songs.create!(name: song_name, bas_score: bas, adv_score: adv, ext_score: ext, bas_lv: bas_lv, adv_lv: adv_lv, ext_lv: ext_lv, mid: mid)
         end
 
         puts "#{ song_name } ".colorize(:cyan) + "紅譜：#{ ext } ".colorize(:red) + "黃譜：#{ adv } ".colorize(:yellow) + "綠譜：#{ bas }".colorize(:green)
@@ -112,7 +129,7 @@ class JUScorer
   #sort 0-1 照名稱排 2-3 照綠譜排 4-5 照黃譜排 6-7 照紅譜排
   #page 頁數
   def start
-    for i in 1..11
+    for i in 1..12
       @page = @agent.get "http://p.eagate.573.jp/game/jubeat/prop/p/playdata/music.html?rival_id=#{ @rival }&sort=7&page=#{ i }"
       crawl
     end

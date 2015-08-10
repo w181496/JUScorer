@@ -1,7 +1,7 @@
 # JUScorer
 
 ## What is this
-It is a crawler for the music game `Jubeat prop`
+It is a crawler and recorder for the music game `Jubeat prop`
 
 ## How to use
 Install Ruby, RubyGems, sqlite3, nokogiri, mechanize, colorize.
