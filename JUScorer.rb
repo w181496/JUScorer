@@ -76,7 +76,7 @@ class JUScorer
       if cnt > 2
         song_url = "http://p.eagate.573.jp" + data.search('a/@href').text.strip
         /mid=(.*)/ =~ song_url
-        mid = Regexp.last_match[1].strip
+        mid = Regexp.last_match[1].to_s.strip
         song_name = data.search('a').text.strip
         ext = row.search('td[5]').text.strip
         adv = row.search('td[4]').text.strip
@@ -98,8 +98,7 @@ class JUScorer
         end
 
         #update song's scores
-        #天国と地獄 there are two the same song name, fuck!
-        if song = @user.songs.find_by(name: mid)
+        if song = @user.songs.find_by(mid: mid)
           song.bas_score = bas
           song.adv_score = adv
           song.ext_score = ext
