@@ -102,17 +102,17 @@ class Cli
         if type == 2
           if diff == 1
             score = song.bas_score
-            if cmp_score = user2.songs.find_by(name: song.name)
+            if cmp_score = user2.songs.find_by(mid: song.mid)
               cmp_score = cmp_score.bas_score
             end
           elsif diff == 2
             score = song.adv_score
-            if cmp_score = user2.songs.find_by(name: song.name)
+            if cmp_score = user2.songs.find_by(mid: song.mid)
               cmp_score = cmp_score.adv_score
             end
           elsif diff == 3
             score = song.ext_score
-            if cmp_score = user2.songs.find_by(name: song.name)
+            if cmp_score = user2.songs.find_by(mid: song.mid)
               cmp_score = cmp_score.ext_score
             end
           end
