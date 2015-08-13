@@ -63,9 +63,9 @@ class Cli
   end
 
   def compareScore
-    # =====
-    # TODO
-    # =====
+    # ===========
+    # TODO: type1
+    # ===========
     users = User.all
     users.each do |user|
       puts "#{user.id}) #{user.rival_id} #{user.nick} #{user.title} #{user.last_at} #{user.location} #{user.game_center}"
@@ -77,7 +77,72 @@ class Cli
       print "Select second player to compare scores: ".colorize(:light_yellow)
       uid = gets.chomp.to_i
       user2 = User.find_by(id: uid)
+      puts "(1) By level (2) By difficulty".colorize(:light_green)
+      print "Select type: ".colorize(:light_yellow)
+      type = gets.chomp.to_i
+
+      lv = 0
+      diff = 0
+      if type == 1
+        puts "(1) 1 (2) 2 (3) 3 (4) 4 (5) 5 (6) 6 (7) 7 (8) 8 (9) 9 (10) 10".colorize(:light_green)
+        print "Select level: ".colorize(:light_yellow)
+        lv = gets.chomp.to_i
+      elsif type == 2
+        puts "(1) basic (2) advance (3) extreme".colorize(:light_green)
+        print "Select difficulty: ".colorize(:light_yellow)
+        diff = gets.chomp.to_i
+      end
       puts "Please wait ...".colorize(:light_green)
+
+      table = []
+      idx = 0
+
+      song1 = user1.songs.order('name')
+      song1.each do |song|
+        if type == 2
+          if diff == 1
+            score = song.bas_score
+            if cmp_score = user2.songs.find_by(name: song.name)
+              cmp_score = cmp_score.bas_score
+            end
+          elsif diff == 2
+            score = song.adv_score
+            if cmp_score = user2.songs.find_by(name: song.name)
+              cmp_score = cmp_score.adv_score
+            end
+          elsif diff == 3
+            score = song.ext_score
+            if cmp_score = user2.songs.find_by(name: song.name)
+              cmp_score = cmp_score.ext_score
+            end
+          end
+        end
+        if !cmp_score
+          #table[idx] = [song.name, score, '0', ' - ']
+        elsif cmp_score == 0 || score == 0
+          #table[idx] = [song.name, score, cmp_score, ' - ']
+        else
+          table[idx] = [song.name, score, cmp_score, score - cmp_score]
+          idx += 1
+        end
+        #idx += 1
+      end
+
+      puts "曲名 #{user1.nick} #{user2.nick} 差距".colorize(:light_green)
+      puts "=".colorize(:light_green) * 25
+
+      #sort table by score
+      table.sort! {|x,y| x[3].to_i <=> y[3].to_i}
+
+      table.each do |row|
+        print "#{row[0]}".colorize(:light_yellow)
+        print " #{row[1]} #{row[2]}"
+        if row[3].to_i > 0
+          puts " +#{row[3]}".colorize(:light_cyan)
+        else
+          puts " #{row[3]}".colorize(:light_red)
+        end
+      end
 
     else
       puts "No user data!".colorize(:light_red)
