@@ -33,6 +33,8 @@ class Cli
         deleteData
       elsif op == 6
         @flag = false
+      else
+        test
       end
 
     end
@@ -97,9 +99,46 @@ class Cli
       table = []
       idx = 0
 
-      song1 = user1.songs.order('name')
-      song1.each do |song|
-        if type == 2
+      # 以等級做比較
+      if type == 1
+        song1 = user1.songs.where('bas_lv = ? OR adv_lv = ? OR ext_lv = ?', lv, lv, lv)
+
+        song1.each do |song|
+          cmp_score = user2.songs.find_by(mid: song.mid)
+          if song.bas_lv == lv
+            score = song.bas_score
+            if cmp_score
+              cmp_score = cmp_score.bas_score
+            end
+            if cmp_score && cmp_score > 0 && score > 0
+              table[idx] = [song.name, score, cmp_score, score - cmp_score]
+              idx += 1
+            end
+          elsif song.adv_lv == lv
+            score = song.adv_score
+            if cmp_score
+              cmp_score = cmp_score.adv_score
+            end
+            if cmp_score && cmp_score > 0 && score > 0
+              table[idx] = [song.name, score, cmp_score, score - cmp_score]
+              idx += 1
+            end
+          elsif song.ext_lv == lv
+            score = song.ext_score
+            if cmp_score
+              cmp_score = cmp_score.ext_score
+            end
+            if cmp_score && cmp_score > 0 && score > 0
+              table[idx] = [song.name, score, cmp_score, score - cmp_score]
+              idx += 1
+            end
+          end
+        end
+      # 以紅黃綠譜作比較
+      elsif type == 2
+        song1 = user1.songs.order('name')
+
+        song1.each do |song|
           if diff == 1
             score = song.bas_score
             if cmp_score = user2.songs.find_by(mid: song.mid)
@@ -116,16 +155,17 @@ class Cli
               cmp_score = cmp_score.ext_score
             end
           end
+
+          if !cmp_score
+            #table[idx] = [song.name, score, '0', ' - ']
+          elsif cmp_score == 0 || score == 0
+            #table[idx] = [song.name, score, cmp_score, ' - ']
+          else
+            table[idx] = [song.name, score, cmp_score, score - cmp_score]
+            idx += 1
+          end
+          #idx += 1
         end
-        if !cmp_score
-          #table[idx] = [song.name, score, '0', ' - ']
-        elsif cmp_score == 0 || score == 0
-          #table[idx] = [song.name, score, cmp_score, ' - ']
-        else
-          table[idx] = [song.name, score, cmp_score, score - cmp_score]
-          idx += 1
-        end
-        #idx += 1
       end
 
       puts "曲名 #{user1.nick} #{user2.nick} 差距".colorize(:light_green)
@@ -258,4 +298,6 @@ class Cli
       puts "No user data!".colorize(:light_red)
     end
   end
+
 end
+
