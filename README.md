@@ -1,9 +1,13 @@
 # JUScorer
 
+## Update
+Stop update! Because 573's website login use reCAPTCHA now QQ.
+
 ## What is this
 It is a crawler and recorder for the music game `Jubeat prop`
 
 ## How to use
+
 Install Ruby, RubyGems, sqlite3, nokogiri, mechanize, colorize.
 
 `$ gem install nokogiri`

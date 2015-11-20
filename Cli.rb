@@ -33,8 +33,6 @@ class Cli
         deleteData
       elsif op == 6
         @flag = false
-      else
-        test
       end
 
     end
@@ -65,9 +63,6 @@ class Cli
   end
 
   def compareScore
-    # ===========
-    # TODO: type1
-    # ===========
     users = User.all
     users.each do |user|
       puts "#{user.id}) #{user.rival_id} #{user.nick} #{user.title} #{user.last_at} #{user.location} #{user.game_center}"
@@ -79,7 +74,7 @@ class Cli
       print "Select second player to compare scores: ".colorize(:light_yellow)
       uid = gets.chomp.to_i
       user2 = User.find_by(id: uid)
-      puts "(1) By level (2) By difficulty".colorize(:light_green)
+      puts "(1) By level (2) By difficulty (3) By name".colorize(:light_green)
       print "Select type: ".colorize(:light_yellow)
       type = gets.chomp.to_i
 
@@ -90,9 +85,12 @@ class Cli
         print "Select level: ".colorize(:light_yellow)
         lv = gets.chomp.to_i
       elsif type == 2
-        puts "(1) basic (2) advance (3) extreme".colorize(:light_green)
+        puts "(1) basic (2) advanced (3) extreme".colorize(:light_green)
         print "Select difficulty: ".colorize(:light_yellow)
         diff = gets.chomp.to_i
+      elsif type == 3
+        print "Input the song name: ".colorize(:light_yellow)
+        sname = gets.chomp.to_i
       end
       puts "Please wait ...".colorize(:light_green)
 
@@ -104,32 +102,37 @@ class Cli
         song1 = user1.songs.where('bas_lv = ? OR adv_lv = ? OR ext_lv = ?', lv, lv, lv)
 
         song1.each do |song|
-          cmp_score = user2.songs.find_by(mid: song.mid)
+          score2 = user2.songs.find_by(mid: song.mid)
+          cmp_score = score2
           if song.bas_lv == lv
             score = song.bas_score
             if cmp_score
               cmp_score = cmp_score.bas_score
             end
             if cmp_score && cmp_score > 0 && score > 0
-              table[idx] = [song.name, score, cmp_score, score - cmp_score]
+              table[idx] = [song.name, score, cmp_score, score - cmp_score, "BASIC"]
               idx += 1
             end
-          elsif song.adv_lv == lv
+          end
+          cmp_score = score2
+          if song.adv_lv == lv
             score = song.adv_score
             if cmp_score
               cmp_score = cmp_score.adv_score
             end
             if cmp_score && cmp_score > 0 && score > 0
-              table[idx] = [song.name, score, cmp_score, score - cmp_score]
+              table[idx] = [song.name, score, cmp_score, score - cmp_score, "ADVANCED"]
               idx += 1
             end
-          elsif song.ext_lv == lv
+          end
+          cmp_score = score2
+          if song.ext_lv == lv
             score = song.ext_score
             if cmp_score
               cmp_score = cmp_score.ext_score
             end
             if cmp_score && cmp_score > 0 && score > 0
-              table[idx] = [song.name, score, cmp_score, score - cmp_score]
+              table[idx] = [song.name, score, cmp_score, score - cmp_score, "EXTREME"]
               idx += 1
             end
           end
@@ -161,10 +164,28 @@ class Cli
           elsif cmp_score == 0 || score == 0
             #table[idx] = [song.name, score, cmp_score, ' - ']
           else
-            table[idx] = [song.name, score, cmp_score, score - cmp_score]
+            if diff == 1
+              table[idx] = [song.name, score, cmp_score, score - cmp_score, "BASIC"]
+            elsif diff == 2
+              table[idx] = [song.name, score, cmp_score, score - cmp_score, "ADVANCED"]
+            elsif diff == 3
+              table[idx] = [song.name, score, cmp_score, score - cmp_score, "EXTREME"]
+            end
             idx += 1
           end
           #idx += 1
+        end
+      elsif type == 3 #TODO
+        song1 = user1.songs.where(name: sname)
+        if song1.count > 1
+          song1.each do |song|
+            score = song.bas_score
+            if cmp_score = user2.songs.find_by(mid: song.mid)
+              cmp_score = cmp_score.ext_score
+            end
+          end
+        else
+
         end
       end
 
@@ -175,8 +196,15 @@ class Cli
       table.sort! {|x,y| x[3].to_i <=> y[3].to_i}
 
       table.each do |row|
-        print "#{row[0]}".colorize(:light_yellow)
-        print " #{row[1]} #{row[2]}"
+        print "#{row[0]}".colorize(:light_blue)
+        if row[4] == "BASIC"
+          print " [#{row[4]}]".colorize(:light_green)
+        elsif row[4] == "ADVANCED"
+          print " [#{row[4]}]".colorize(:light_yellow)
+        elsif row[4] == "EXTREME"
+          print " [#{row[4]}]".colorize(:light_red)
+        end
+        print " #{row[1]} #{row[2]}".colorize(:light_white)
         if row[3].to_i > 0
           puts " +#{row[3]}".colorize(:light_cyan)
         else
